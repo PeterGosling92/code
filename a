@@ -1,0 +1,60 @@
+function checkPropertiesForExpressions(layer) {
+  // Pobierz wszystkie properties dla wybranej warstwy
+  var properties = layer.property("ADBE Transform Group");
+  
+  // Przejdź przez wszystkie properties i sprawdź czy zawierają expressions
+  var expressions = [];
+  for (var i = 1; i <= properties.numProperties; i++) {
+    var property = properties.property(i);
+    if (property.expression) {
+      // Jeśli property zawiera expressions, dodaj do tablicy expressions
+      expressions.push({ property: property.name, expression: property.expression });
+    }
+
+  }
+
+  if (expressions.length > 0) {
+  // Jeśli znaleziono expressions, utwórz okno dialogowe do edycji
+    var window = new Window("dialog", "Edytuj expressions");
+    // Utwórz pasek narzędzi
+window.toolbar = window.add("panel");
+window.toolbar.add("statictext", undefined, "Edytuj wartość zmiennej 'x' dla poszczególnych properties:");
+
+// Utwórz grupy pól do edycji dla każdego property z expressions
+window.groups = window.add("group");
+window.groups.orientation = "column";
+window.groups.alignChildren = ["left", "top"];
+
+// Iteruj po tablicy expressions i utwórz grupy pól tekstowych dla każdego elementu
+for (var i = 0; i < expressions.length; i++) {
+  var expression = expressions[i];
+
+  // Utwórz grupę dla każdego property z expressions
+  var group = window.groups.add("group");
+  group.orientation = "row";
+
+// Utwórz pole tekstowe z nazwą property
+var propertyField = group.add("statictext", undefined, expression.property);
+propertyField.enabled = true;
+
+// Utwórz pole tekstowe do edycji wartości zmiennej 'x' w expressions
+var valueField = group.add("edittext", undefined, expression.expression);
+
+// Dodaj zdarzenie zmiany wartości w polu tekstowym, aby aktualizować wartość w expressions
+valueField.onChange = function() {
+  expression.property.expression = valueField.text;
+}
+}
+
+// Dodaj przycisk "OK" do okna dialogowego
+    window.add("button", undefined, "OK");
+// Wyświetl okno dialogowe
+    window.show();
+  }
+}
+
+// Pobierz aktualnie wybraną warstwę
+var selectedLayer = app.project.activeItem.selectedLayers[0];
+
+// Sprawdź properties dla wybranej warstwy
+checkPropertiesForExpressions(selectedLayer)
